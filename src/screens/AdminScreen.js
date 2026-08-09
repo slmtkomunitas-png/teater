@@ -20,6 +20,33 @@ export default function AdminScreen({ user, onLogout }) {
   const [filter, setFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [mengirim, setMengirim] = useState(false);
+  const [buat, setBuat] = useState({ nama: '', username: '', password: '', role: 'anggota' });
+  const [infoBuat, setInfoBuat] = useState('');
+  const [membuat, setMembuat] = useState(false);
+
+  async function buatAkun() {
+    if (!buat.nama || !buat.username || !buat.password) {
+      return setInfoBuat({ tipe: 'err', pesan: 'Semua kolom wajib diisi' });
+    }
+    if (buat.password.length < 6) {
+      return setInfoBuat({ tipe: 'err', pesan: 'Kata sandi minimal 6 karakter' });
+    }
+    setMembuat(true);
+    setInfoBuat('');
+    try {
+      await api('/api/users', {
+        method: 'POST',
+        body: { nama: buat.nama, username: buat.username, password: buat.password, role: buat.role },
+      });
+      setInfoBuat({ tipe: 'ok', pesan: `Akun ${buat.nama} berhasil dibuat` });
+      setBuat({ nama: '', username: '', password: '', role: 'anggota' });
+      loadData().catch(() => {});
+    } catch (e) {
+      setInfoBuat({ tipe: 'err', pesan: e.message });
+    } finally {
+      setMembuat(false);
+    }
+  }
 
   const loadData = useCallback(async () => {
     const [r1, r2] = await Promise.all([
@@ -90,8 +117,8 @@ export default function AdminScreen({ user, onLogout }) {
       >
         <View style={styles.statRow}>
           <Stat label="Hadir Hari Ini" value={hadirHariIni} toneBg={warna.successBg} toneTeks={warna.successText} />
-          <Stat label="Total Absensi" value={data.length} toneBg="#EEF2FF" toneTeks={warna.primary} />
-          <Stat label="Total Anggota" value={anggota} toneBg="#FDF4FF" toneTeks="#A21CAF" />
+          <Stat label="Total Absensi" value={data.length} toneBg={warna.primaryBg} toneTeks={warna.primary} />
+          <Stat label="Total Anggota" value={anggota} toneBg={warna.emasBg} toneTeks={warna.emasText} />
         </View>
 
         <Kartu>
@@ -167,6 +194,78 @@ export default function AdminScreen({ user, onLogout }) {
               <Text style={styles.alertErrText}>{gagal}</Text>
             </View>
           )}
+        </Kartu>
+
+        <Kartu>
+          <Text style={styles.cardTitle}>Tambah Akun</Text>
+          <Text style={styles.cardSub}>
+            Buatkan akun untuk anggota baru. Akun ini hanya bisa dibuat oleh admin.
+          </Text>
+
+          <View style={styles.roleBuatRow}>
+            {['anggota', 'admin'].map(r => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.roleBuatBtn, buat.role === r && styles.roleBuatBtnActive]}
+                onPress={() => setBuat(b => ({ ...b, role: r }))}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.roleBuatText, buat.role === r && styles.roleBuatTextActive]}>
+                  {r === 'anggota' ? 'Anggota' : 'Admin'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.fieldBuat}>
+            <Text style={styles.labelBuat}>Nama Lengkap</Text>
+            <TextInput
+              style={styles.inputBuat}
+              placeholder="Contoh: Budi Santoso"
+              placeholderTextColor="#A89F95"
+              value={buat.nama}
+              onChangeText={v => setBuat(b => ({ ...b, nama: v }))}
+            />
+          </View>
+          <View style={styles.fieldBuat}>
+            <Text style={styles.labelBuat}>Username</Text>
+            <TextInput
+              style={styles.inputBuat}
+              placeholder="Untuk login anggota"
+              placeholderTextColor="#A89F95"
+              autoCapitalize="none"
+              value={buat.username}
+              onChangeText={v => setBuat(b => ({ ...b, username: v }))}
+            />
+          </View>
+          <View style={styles.fieldBuat}>
+            <Text style={styles.labelBuat}>Kata Sandi</Text>
+            <TextInput
+              style={styles.inputBuat}
+              placeholder="Minimal 6 karakter"
+              placeholderTextColor="#A89F95"
+              secureTextEntry
+              value={buat.password}
+              onChangeText={v => setBuat(b => ({ ...b, password: v }))}
+            />
+          </View>
+
+          {!!infoBuat && (
+            <View style={[styles.alert, infoBuat.tipe === 'ok' ? styles.alertOk : styles.alertErr, { marginTop: 4 }]}>
+              <Text style={infoBuat.tipe === 'ok' ? styles.alertOkTeks : styles.alertErrText}>
+                {infoBuat.pesan}
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.buatBtn, (membuat) && styles.disabled]}
+            onPress={buatAkun}
+            disabled={membuat}
+            activeOpacity={0.85}
+          >
+            {membuat ? <ActivityIndicator color="#fff" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
+          </TouchableOpacity>
         </Kartu>
 
         <Kartu>
@@ -255,6 +354,27 @@ const styles = StyleSheet.create({
   alertName: { color: warna.teks, fontWeight: '700', fontSize: 13, marginTop: 3 },
   alertSub: { color: warna.muted, fontSize: 12, marginTop: 1 },
   alertErrText: { color: warna.dangerText, fontWeight: '700', fontSize: 13 },
+  alertOkTeks: { color: warna.successText, fontWeight: '700', fontSize: 13 },
+  roleBuatRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  roleBuatBtn: {
+    flex: 1, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5,
+    borderColor: warna.border, backgroundColor: warna.bg, alignItems: 'center',
+  },
+  roleBuatBtnActive: { borderColor: warna.primary, backgroundColor: warna.primaryBg },
+  roleBuatText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
+  roleBuatTextActive: { color: warna.primaryDark },
+  fieldBuat: { marginBottom: 12 },
+  labelBuat: { fontSize: 13, fontWeight: '700', color: '#4A4138', marginBottom: 7 },
+  inputBuat: {
+    borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: warna.teks,
+    backgroundColor: warna.bg,
+  },
+  buatBtn: {
+    backgroundColor: warna.primary, borderRadius: radius.md,
+    paddingVertical: 14, alignItems: 'center', marginTop: 4,
+  },
+  buatBtnText: { color: '#fff', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   headData: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filterRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: 6 },
   filterInput: {
@@ -262,7 +382,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, backgroundColor: '#FAFBFF',
   },
   filterBtn: {
-    backgroundColor: '#EEF2FF', borderRadius: radius.md, paddingHorizontal: 18, justifyContent: 'center',
+    backgroundColor: warna.emasBg, borderRadius: radius.md, paddingHorizontal: 18, justifyContent: 'center',
   },
   filterBtnText: { color: warna.primaryDark, fontWeight: '700', fontSize: 13 },
   empty: { color: '#94A3B8', textAlign: 'center', marginVertical: 22, fontSize: 13 },

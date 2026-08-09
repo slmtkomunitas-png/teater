@@ -55,7 +55,7 @@ export default function AnggotaScreen({ user, onLogout }) {
           <Stat
             label="Total Kehadiran"
             value={riwayat.length}
-            toneBg="#EEF2FF"
+            toneBg={warna.primaryBg}
             toneTeks={warna.primary}
           />
         </View>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   qrBox: { alignItems: 'center', marginTop: 18 },
   qrFrame: {
     backgroundColor: '#fff', borderRadius: radius.lg, padding: 14,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#C7D2FE',
+    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#F3CDD6',
   },
   qrText: {
     textAlign: 'center', marginTop: 14, fontFamily: 'monospace',

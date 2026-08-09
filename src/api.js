@@ -39,15 +39,28 @@ export async function setToken(token) {
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = await getToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new Error('Tidak dapat terhubung ke server. Pastikan server dan koneksi internet aktif.');
+  }
+  const text = await res.text();
+  let data = {};
+  try {
+    data = JSON.parse(text);
+  } catch {
+    if (!res.ok) {
+      throw new Error('Server bermasalah. Coba lagi sebentar lagi.');
+    }
+  }
   if (!res.ok) {
     throw new Error(data.pesan || 'Terjadi kesalahan pada server');
   }

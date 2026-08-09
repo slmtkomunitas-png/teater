@@ -69,7 +69,10 @@ app.get('/api/me', optionalAuth, (req, res) => {
   res.json({ user: req.session.user });
 });
 
-app.post('/api/register', (req, res) => {
+app.post('/api/users', auth, (req, res) => {
+  if (req.session.user.role !== 'admin') {
+    return res.status(403).json({ pesan: 'Hanya admin yang dapat membuat akun' });
+  }
   const { nama, username, password, role } = req.body || {};
   if (!nama || !username || !password) {
     return res.status(400).json({ pesan: 'Semua kolom wajib diisi' });
@@ -85,7 +88,7 @@ app.post('/api/register', (req, res) => {
     ).run(nama, username, hashPassword(password), r, randomQrCode(), new Date().toISOString());
     const user = db.prepare('SELECT id, nama, username, role, qr_code FROM user WHERE id = ?')
       .get(info.lastInsertRowid);
-    res.status(201).json({ pesan: 'Registrasi berhasil', user });
+    res.status(201).json({ pesan: 'Akun berhasil dibuat', user });
   } catch (e) {
     if (String(e.message).includes('UNIQUE')) {
       return res.status(400).json({ pesan: 'Username sudah digunakan, silakan pilih yang lain' });

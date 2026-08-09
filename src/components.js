@@ -24,7 +24,7 @@ export function Chip({ label, tone = 'success' }) {
     success: { bg: warna.successBg, teks: warna.successText },
     warn: { bg: warna.warnBg, teks: warna.warnText },
     danger: { bg: warna.dangerBg, teks: warna.dangerText },
-    netral: { bg: '#E0E7FF', teks: warna.primaryDark },
+    netral: { bg: warna.emasBg, teks: warna.emasText },
   }[tone];
   return (
     <View style={[styles.chip, { backgroundColor: t.bg }]}>
@@ -33,7 +33,7 @@ export function Chip({ label, tone = 'success' }) {
   );
 }
 
-export function Stat({ label, value, toneBg = '#EEF2FF', toneTeks = warna.primary }) {
+export function Stat({ label, value, toneBg = warna.primaryBg, toneTeks = warna.primary }) {
   return (
     <View style={[styles.stat, bayangan.card, { backgroundColor: toneBg }]}>
       <Text style={[styles.statNum, { color: toneTeks }]}>{value}</Text>
