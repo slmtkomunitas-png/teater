@@ -198,8 +198,6 @@ export default function LoginScreen({ onLogin }) {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-
-          <Text style={styles.footer}>Server: {API_URL}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -257,5 +255,4 @@ const styles = StyleSheet.create({
   btnGrad: { borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
   btnText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: 0.3 },
   disabled: { opacity: 0.6 },
-  footer: { textAlign: 'center', color: 'rgba(255,255,255,.55)', fontSize: 11, marginTop: 18 },
 });
