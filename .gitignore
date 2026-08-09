@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+server/node_modules/
+server/absensi.db
+server/package-lock.json
+.DS_Store
+*.pem
+.env
+.env.*

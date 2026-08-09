@@ -1,0 +1,26 @@
+{
+  "name": "absensi-expo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~54.0.0",
+    "expo-camera": "~17.0.10",
+    "expo-constants": "~18.0.13",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-status-bar": "~3.0.9",
+    "express": "^5.2.1",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-qrcode-svg": "^6.3.21",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-svg": "15.12.1"
+  },
+  "scripts": {
+    "start": "EXPO_UNSTABLE_BONJOUR=0 expo start",
+    "android": "EXPO_UNSTABLE_BONJOUR=0 expo start --android",
+    "ios": "EXPO_UNSTABLE_BONJOUR=0 expo start --ios",
+    "web": "EXPO_UNSTABLE_BONJOUR=0 expo start --web"
+  },
+  "private": true
+}

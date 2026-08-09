@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Absensi Teater Sangsuropati",
+    "slug": "absensi-teater-sangsuropati",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sangsuropati.absensi"
+    },
+    "android": {
+      "package": "com.sangsuropati.absensi",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Izinkan $(PRODUCT_NAME) mengakses kamera untuk memindai QR code absensi",
+          "microphonePermission": "Izinkan $(PRODUCT_NAME) mengakses mikrofon"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://unfocused-algorithm-tables.ngrok-free.dev"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
