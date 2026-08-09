@@ -23,8 +23,6 @@ try {
 
 export const API_URL = url;
 
-export const API_URL = getBaseUrl();
-
 let tokenCache = null;
 
 export async function getToken() {
