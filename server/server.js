@@ -194,6 +194,75 @@ app.get('/api/absensi/saya', auth, (req, res) => {
   res.json({ data: rows });
 });
 
+function csvEscape(v) {
+  const s = String(v ?? '');
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
+app.get('/api/absensi/laporan', auth, (req, res) => {
+  if (req.session.user.role !== 'admin') {
+    return res.status(403).json({ pesan: 'Akses ditolak' });
+  }
+  const anggota = db.prepare(
+    "SELECT id, nama, username, qr_code FROM user WHERE role = 'anggota' ORDER BY nama"
+  ).all();
+  const { tanggal, format } = req.query;
+
+  if (!tanggal) {
+    const sessions = db.prepare(
+      'SELECT DISTINCT tanggal FROM absensi ORDER BY tanggal DESC'
+    ).all();
+    return res.json({ data: sessions.map(s => s.tanggal) });
+  }
+
+  const rows = db.prepare(
+    'SELECT userId, jam FROM absensi WHERE tanggal = ?'
+  ).all(tanggal);
+  const hadirMap = {};
+  rows.forEach(r => { hadirMap[r.userId] = r.jam; });
+
+  const hadir = [], absen = [];
+  anggota.forEach(u => {
+    if (hadirMap[u.id]) {
+      hadir.push({ id: u.id, nama: u.nama, username: u.username, jam: hadirMap[u.id] });
+    } else {
+      absen.push({ id: u.id, nama: u.nama, username: u.username });
+    }
+  });
+
+  const laporan = {
+    tanggal,
+    total: anggota.length,
+    hadirCount: hadir.length,
+    absenCount: absen.length,
+    hadir,
+    absen,
+  };
+
+  if (format === 'csv') {
+    const baris = [];
+    baris.push('Laporan Absensi Teater Sangsuropati');
+    baris.push(`Tanggal,${tanggal}`);
+    baris.push('');
+    baris.push('No,Nama,Username,Status,Jam');
+    hadir.forEach((h, i) => {
+      baris.push(`${i + 1},${csvEscape(h.nama)},${csvEscape(h.username)},Hadir,${csvEscape(h.jam)}`);
+    });
+    absen.forEach((a, i) => {
+      baris.push(`${hadir.length + i + 1},${csvEscape(a.nama)},${csvEscape(a.username)},Tidak Hadir,`);
+    });
+    baris.push('');
+    baris.push(`Total Anggota,${anggota.length}`);
+    baris.push(`Hadir,${hadir.length}`);
+    baris.push(`Tidak Hadir,${absen.length}`);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="absensi-${tanggal}.csv"`);
+    return res.send('\ufeff' + baris.join('\r\n'));
+  }
+
+  res.json({ data: laporan });
+});
+
 // Biarkan Express meng-handle IP dari LAN mana pun
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

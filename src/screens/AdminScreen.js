@@ -8,7 +8,10 @@ import { api } from '../api';
 import { warna, radius, bayangan } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
 
+import KegiatanPanel from './KegiatanPanel';
+
 export default function AdminScreen({ user, onLogout }) {
+  const [tab, setTab] = useState('scan');
   const [permission, requestPermission] = useCameraPermissions();
   const [kam, setKam] = useState(false);
   const [pemindai, setPemindai] = useState(false);
@@ -115,6 +118,24 @@ export default function AdminScreen({ user, onLogout }) {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tabBtn, tab === 'scan' && styles.tabActive]}
+            onPress={() => setTab('scan')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabText, tab === 'scan' && styles.tabTextActive]}>Scan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabBtn, tab === 'kegiatan' && styles.tabActive]}
+            onPress={() => setTab('kegiatan')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabText, tab === 'kegiatan' && styles.tabTextActive]}>Kegiatan</Text>
+          </TouchableOpacity>
+        </View>
+
+        {tab === 'scan' ? (<>
         <View style={styles.statRow}>
           <Stat label="Hadir Hari Ini" value={hadirHariIni} toneBg={warna.successBg} toneTeks={warna.successText} />
           <Stat label="Total Absensi" value={data.length} toneBg={warna.primaryBg} toneTeks={warna.primary} />
@@ -305,6 +326,9 @@ export default function AdminScreen({ user, onLogout }) {
             ))
           )}
         </Kartu>
+        </>) : (
+          <KegiatanPanel user={user} />
+        )}
       </ScrollView>
     </View>
   );
@@ -313,6 +337,16 @@ export default function AdminScreen({ user, onLogout }) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: warna.bg },
   content: { padding: 16, paddingBottom: 40 },
+  tabBar: {
+    flexDirection: 'row', backgroundColor: warna.primaryBg,
+    borderRadius: radius.md, padding: 5, marginBottom: 16, gap: 5,
+  },
+  tabBtn: {
+    flex: 1, paddingVertical: 10, borderRadius: radius.sm, alignItems: 'center',
+  },
+  tabActive: { backgroundColor: warna.primary },
+  tabText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
+  tabTextActive: { color: '#fff' },
   statRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
   cardTitle: { fontSize: 17, fontWeight: '800', color: warna.teks },
   cardSub: { fontSize: 12.5, color: warna.muted, marginTop: 4, marginBottom: 16, lineHeight: 18 },

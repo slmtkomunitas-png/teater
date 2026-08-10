@@ -13,7 +13,7 @@
     "android": {
       "package": "com.sangsuropati.absensi",
       "adaptiveIcon": {
-        "backgroundColor": "#58212F",
+        "backgroundColor": "#5F3A23",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

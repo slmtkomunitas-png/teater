@@ -33,6 +33,16 @@ export default function AnggotaScreen({ user, onLogout }) {
   const today = new Date().toISOString().slice(0, 10);
   const hadirHariIni = riwayat.filter(r => r.tanggal === today).length;
 
+  function lastSaturday() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = (day + 6) % 7 + 1;
+    d.setDate(d.getDate() - diff);
+    return d.toISOString().slice(0, 10);
+  }
+  const sabtuIni = lastSaturday();
+  const catatanSabtu = riwayat.find(r => r.tanggal === sabtuIni);
+
   return (
     <View style={styles.flex}>
       <Header
@@ -59,6 +69,31 @@ export default function AnggotaScreen({ user, onLogout }) {
             toneTeks={warna.primary}
           />
         </View>
+
+        <Kartu>
+          <View style={styles.cardHead}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>Kegiatan Sabtu Ini</Text>
+              <Text style={styles.cardSub}>
+                Latihan rutin Sabtu — {sabtuIni}
+              </Text>
+            </View>
+            <Chip label={catatanSabtu ? 'HADIR' : 'BELUM HADIR'} tone={catatanSabtu ? 'success' : 'warn'} />
+          </View>
+          {catatanSabtu ? (
+            <View style={styles.sabtuOk}>
+              <Text style={styles.sabtuOkText}>
+                Anda tercatat hadir pukul {catatanSabtu.jam}. Tetap semangat latihan!
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.sabtuBelum}>
+              <Text style={styles.sabtuBelumText}>
+                Belum ada catatan kehadiran. Tunjukkan QR Anda kepada admin saat latihan.
+              </Text>
+            </View>
+          )}
+        </Kartu>
 
         <Kartu>
           <View style={styles.cardHead}>
@@ -135,6 +170,10 @@ const styles = StyleSheet.create({
   },
   btnSmText: { color: '#fff', fontWeight: '700', fontSize: 13, letterSpacing: 0.3 },
   empty: { color: '#94A3B8', textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  sabtuOk: { backgroundColor: warna.successBg, borderRadius: radius.md, padding: 12, marginTop: 10 },
+  sabtuOkText: { color: warna.successText, fontSize: 13, fontWeight: '600', lineHeight: 19 },
+  sabtuBelum: { backgroundColor: warna.warnBg, borderRadius: radius.md, padding: 12, marginTop: 10 },
+  sabtuBelumText: { color: warna.warnText, fontSize: 13, fontWeight: '600', lineHeight: 19 },
   rowItem: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 11,
     borderBottomWidth: 1, borderBottomColor: warna.border,
