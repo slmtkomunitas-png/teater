@@ -30,6 +30,16 @@
           "cameraPermission": "Izinkan $(PRODUCT_NAME) mengakses kamera untuk memindai QR code absensi",
           "microphonePermission": "Izinkan $(PRODUCT_NAME) mengakses mikrofon"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "useLegacyPackaging": true
+          }
+        }
       ]
     ],
     "extra": {
