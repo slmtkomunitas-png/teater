@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Image,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -81,9 +81,7 @@ export default function LoginScreen({ onLogin }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoWrap}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>TS</Text>
-            </View>
+            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="cover" />
             <Text style={styles.brand}>Teater Sangsuropati</Text>
             <Text style={styles.subBrand}>Sistem Absensi Anggota Teater</Text>
           </View>
@@ -162,12 +160,10 @@ const styles = StyleSheet.create({
   wrap: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 },
   logoWrap: { alignItems: 'center', marginBottom: 28 },
   logo: {
-    width: 68, height: 68, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,.14)',
-    borderWidth: 1.5, borderColor: 'rgba(201,162,39,.6)',
-    alignItems: 'center', justifyContent: 'center',
+    width: 96, height: 96, borderRadius: 24, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: 'rgba(212,175,55,.55)',
+    backgroundColor: '#0A0907',
   },
-  logoText: { color: '#F5E7B8', fontSize: 26, fontWeight: '900', letterSpacing: 1 },
   brand: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 14, letterSpacing: 0.3 },
   subBrand: { color: 'rgba(255,255,255,.72)', fontSize: 13, marginTop: 4 },
   card: {

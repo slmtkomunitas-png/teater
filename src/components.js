@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { warna, radius, bayangan, inisial, warnaAvatar } from './theme';
@@ -52,7 +52,10 @@ export function Header({ title, subtitle, aksi }) {
       style={[styles.header, { paddingTop: insets.top + 14 }]}
     >
       <View style={styles.headerRow}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
+        <View style={styles.headerLogoWrap}>
+          <Image source={require('../assets/icon.png')} style={styles.headerLogo} resizeMode="cover" />
+        </View>
+        <View style={{ flex: 1, paddingLeft: 12, paddingRight: 12 }}>
           <Text style={styles.headerTitle}>{title}</Text>
           {!!subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
         </View>
@@ -76,6 +79,11 @@ export function Kartu({ children, style }) {
 
 const styles = StyleSheet.create({
   avatar: { alignItems: 'center', justifyContent: 'center' },
+  headerLogoWrap: {
+    width: 46, height: 46, borderRadius: 13, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(212,175,55,.6)', backgroundColor: '#0A0907',
+  },
+  headerLogo: { width: '100%', height: '100%' },
   chip: {
     borderRadius: 99, paddingHorizontal: 12, paddingVertical: 5,
     alignSelf: 'flex-start',

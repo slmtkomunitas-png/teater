@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api, getToken, setToken } from './src/api';
 import { warna } from './src/theme';
@@ -42,10 +42,8 @@ export default function App() {
   if (!siap) {
     return (
       <View style={styles.load}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>TS</Text>
-        </View>
-        <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        <Image source={require('./assets/icon.png')} style={styles.logo} resizeMode="cover" />
+        <ActivityIndicator size="large" color="#D4AF37" style={{ marginTop: 20 }} />
       </View>
     );
   }
@@ -67,13 +65,10 @@ export default function App() {
 const styles = StyleSheet.create({
   load: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: warna.gradasi1,
+    backgroundColor: warna.gradasi2,
   },
   logo: {
-    width: 76, height: 76, borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,.16)', borderWidth: 1,
-    borderColor: 'rgba(255,255,255,.35)',
-    alignItems: 'center', justifyContent: 'center',
+    width: 96, height: 96, borderRadius: 24, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: 'rgba(212,175,55,.55)',
   },
-  logoText: { color: '#fff', fontSize: 30, fontWeight: '900', letterSpacing: 1 },
 });
