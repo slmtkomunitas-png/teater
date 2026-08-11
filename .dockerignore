@@ -1,0 +1,10 @@
+node_modules
+.git
+.expo
+dist
+web-build
+android
+assets
+*.log
+server/absensi.db
+server/node_modules

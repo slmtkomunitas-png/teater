@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
-const db = new DatabaseSync(path.join(__dirname, 'absensi.db'));
+const db = new DatabaseSync(process.env.DB_PATH || path.join(__dirname, 'absensi.db'));
 db.exec(`
   CREATE TABLE IF NOT EXISTS user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +22,18 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES user(id)
   );
 `);
+
+const totalUser = db.prepare('SELECT COUNT(*) AS n FROM user').get();
+if (totalUser.n === 0) {
+  const username = process.env.SEED_ADMIN_USERNAME || 'admin';
+  const password = process.env.SEED_ADMIN_PASSWORD || 'admin123';
+  const nama = process.env.SEED_ADMIN_NAMA || 'Admin Teater';
+  db.prepare(
+    `INSERT INTO user (nama, username, password, role, qr_code, dibuat_pada)
+     VALUES (?, ?, ?, 'admin', ?, ?)`
+  ).run(nama, username, hashPassword(password), randomQrCode(), new Date().toISOString());
+  console.log(`Akun admin default otomatis dibuat: ${username}`);
+}
 
 const app = express();
 app.use(express.json());

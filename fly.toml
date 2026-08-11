@@ -1,0 +1,27 @@
+app = "absensi-teater-sangsuropati"
+
+[build]
+  dockerfile = "server/Dockerfile"
+
+[env]
+  PORT = "3000"
+  DB_PATH = "/data/absensi.db"
+
+[[mounts]]
+  source = "data"
+  destination = "/data"
+
+[[services]]
+  http_checks = []
+  internal_port = 3000
+  processes = ["app"]
+  min_machines_running = 1
+
+  [[services.ports]]
+    handlers = ["http", "tls"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = "30s"
+    path = "/api/me"
+    timeout = "5s"
