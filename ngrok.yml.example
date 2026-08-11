@@ -1,0 +1,6 @@
+# Template konfigurasi ngrok — salin jadi ngrok.yml di ~/.config/ngrok/ lalu isi token kamu
+# Dapatkan token di: https://dashboard.ngrok.com/get-started/your-authtoken
+# JANGAN commit file berisi token asli ke repo (repo ini PUBLIC / semi-publik).
+version: "3"
+agent:
+    authtoken: GANTI_DENGAN_TOKEN_NGROK_KAMU
