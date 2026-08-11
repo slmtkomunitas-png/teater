@@ -85,5 +85,6 @@ server/DEPLOY.md          # panduan pindah ke cloud
 ## Yang sering salah dilupakan
 
 - Jangan commit `server/absensi.db`, `node_modules`, APK, token/credentials
+- **Repo ini PUBLIC di GitHub** — jangan pernah memasukkan key/rahasia: ngrok authtoken ada di `/public/.config/ngrok/ngrok.yml` (di luar repo), kredensial ada di `.git-credentials` (di luar repo). Secret deploy harus lewat env vars / GitHub Secrets, bukan di file.
 - Sesuatu yang menyangkut Expo: cek dulu versi yang dipakai pemilik (`expo ~54`) sebelum berikut npm install versi baru
 - Server pakai Express 5 — API-nya beda tipis dari Express 4 (mis. middleware handling error)
