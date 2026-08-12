@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api, API_URL, getToken } from '../api';
 import { warna, radius, bayangan } from '../theme';
 import { Chip, Kartu } from '../components';
@@ -95,7 +96,7 @@ export default function KegiatanPanel({ user }) {
             value={tanggal}
             onChangeText={setTanggal}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#A89F95"
+            placeholderTextColor="#8A7F6A"
             autoCapitalize="none"
           />
         </View>
@@ -196,11 +197,16 @@ export default function KegiatanPanel({ user }) {
             disabled={unduh}
             activeOpacity={0.85}
           >
-            {unduh ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.unduhBtnText}>Unduh & Bagikan Laporan CSV</Text>
-            )}
+            <LinearGradient
+              colors={[warna.gold1, warna.gold2, warna.gold3]}
+              style={styles.unduhGrad}
+            >
+              {unduh ? (
+                <ActivityIndicator color="#241B0A" />
+              ) : (
+                <Text style={styles.unduhBtnText}>Unduh & Bagikan Laporan CSV</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </>
       ) : (
@@ -241,11 +247,9 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: '800', fontSize: 12 },
   rowTitle: { fontSize: 14, fontWeight: '700', color: warna.teks },
   rowSub: { fontSize: 12, color: warna.muted, marginTop: 1 },
-  unduhBtn: {
-    backgroundColor: warna.primary, borderRadius: radius.md, paddingVertical: 15,
-    marginTop: 16, marginBottom: 24, alignItems: 'center',
-  },
-  unduhBtnText: { color: '#fff', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  unduhBtn: { borderRadius: radius.md, overflow: 'hidden', marginTop: 16, marginBottom: 24 },
+  unduhGrad: { alignItems: 'center', paddingVertical: 15 },
+  unduhBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   disabled: { opacity: 0.6 },
-  empty: { color: '#94A3B8', textAlign: 'center', marginVertical: 30, fontSize: 13 },
+  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 30, fontSize: 13 },
 });

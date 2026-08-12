@@ -4,6 +4,7 @@ import {
   TextInput, ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../api';
 import { warna, radius, bayangan } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
@@ -124,14 +125,26 @@ export default function AdminScreen({ user, onLogout }) {
             onPress={() => setTab('scan')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, tab === 'scan' && styles.tabTextActive]}>Scan</Text>
+            {tab === 'scan' ? (
+              <LinearGradient colors={[warna.gold1, warna.gold2]} style={styles.tabGrad}>
+                <Text style={styles.tabTextActive}>Scan</Text>
+              </LinearGradient>
+            ) : (
+              <Text style={styles.tabText}>Scan</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tabBtn, tab === 'kegiatan' && styles.tabActive]}
             onPress={() => setTab('kegiatan')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, tab === 'kegiatan' && styles.tabTextActive]}>Kegiatan</Text>
+            {tab === 'kegiatan' ? (
+              <LinearGradient colors={[warna.gold1, warna.gold2]} style={styles.tabGrad}>
+                <Text style={styles.tabTextActive}>Kegiatan</Text>
+              </LinearGradient>
+            ) : (
+              <Text style={styles.tabText}>Kegiatan</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -172,7 +185,12 @@ export default function AdminScreen({ user, onLogout }) {
               onPress={bukaKamera}
               activeOpacity={0.85}
             >
-              <Text style={styles.scanBtnText}>Mulai Scan Kamera</Text>
+              <LinearGradient
+                colors={[warna.gold1, warna.gold2, warna.gold3]}
+                style={styles.gradBtn}
+              >
+                <Text style={styles.scanBtnText}>Mulai Scan Kamera</Text>
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
@@ -180,7 +198,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.manualInput}
               placeholder="Kode QR manual, mis. ABS-XXXX"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#8A7F6A"
               autoCapitalize="characters"
               value={kodeManual}
               onChangeText={setKodeManual}
@@ -191,7 +209,12 @@ export default function AdminScreen({ user, onLogout }) {
               disabled={mengirim}
               activeOpacity={0.85}
             >
-              {mengirim ? <ActivityIndicator color="#fff" /> : <Text style={styles.manualBtnText}>Catat</Text>}
+              <LinearGradient
+                colors={[warna.gold1, warna.gold2, warna.gold3]}
+                style={styles.gradBtnFlex}
+              >
+                {mengirim ? <ActivityIndicator color="#1A1408" /> : <Text style={styles.manualBtnText}>Catat</Text>}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -243,7 +266,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Contoh: Budi Santoso"
-              placeholderTextColor="#A89F95"
+              placeholderTextColor="#8A7F6A"
               value={buat.nama}
               onChangeText={v => setBuat(b => ({ ...b, nama: v }))}
             />
@@ -253,7 +276,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Untuk login anggota"
-              placeholderTextColor="#A89F95"
+              placeholderTextColor="#8A7F6A"
               autoCapitalize="none"
               value={buat.username}
               onChangeText={v => setBuat(b => ({ ...b, username: v }))}
@@ -264,7 +287,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Minimal 6 karakter"
-              placeholderTextColor="#A89F95"
+              placeholderTextColor="#8A7F6A"
               secureTextEntry
               value={buat.password}
               onChangeText={v => setBuat(b => ({ ...b, password: v }))}
@@ -285,7 +308,12 @@ export default function AdminScreen({ user, onLogout }) {
             disabled={membuat}
             activeOpacity={0.85}
           >
-            {membuat ? <ActivityIndicator color="#fff" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
+            <LinearGradient
+              colors={[warna.gold1, warna.gold2, warna.gold3]}
+              style={styles.gradBtn}
+            >
+              {membuat ? <ActivityIndicator color="#1A1408" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
+            </LinearGradient>
           </TouchableOpacity>
         </Kartu>
 
@@ -299,7 +327,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.filterInput}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#8A7F6A"
               value={filter}
               onChangeText={setFilter}
             />
@@ -344,9 +372,10 @@ const styles = StyleSheet.create({
   tabBtn: {
     flex: 1, paddingVertical: 10, borderRadius: radius.sm, alignItems: 'center',
   },
-  tabActive: { backgroundColor: warna.primary },
+  tabActive: { backgroundColor: 'rgba(212,175,55,.15)', borderRadius: radius.sm },
   tabText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
-  tabTextActive: { color: '#fff' },
+  tabTextActive: { color: '#241B0A', fontWeight: '800', fontSize: 14 },
+  tabGrad: { flex: 1, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
   statRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
   cardTitle: { fontSize: 17, fontWeight: '800', color: warna.teks },
   cardSub: { fontSize: 12.5, color: warna.muted, marginTop: 4, marginBottom: 16, lineHeight: 18 },
@@ -366,23 +395,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22, paddingVertical: 9,
   },
   tutupText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  scanBtn: { backgroundColor: warna.primary, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
-  scanBtnText: { color: '#fff', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  scanBtn: { borderRadius: radius.md, overflow: 'hidden' },
+  gradBtn: { alignItems: 'center', paddingVertical: 15 },
+  gradBtnFlex: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  scanBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   manualWrap: { flexDirection: 'row', gap: 10, marginTop: 14 },
   manualInput: {
     flex: 1, borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, backgroundColor: '#FAFBFF',
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 14,
+    backgroundColor: warna.bg, color: warna.teks,
   },
   manualBtn: {
-    backgroundColor: warna.success, borderRadius: radius.md,
-    paddingHorizontal: 20, justifyContent: 'center',
+    borderRadius: radius.md,
+    justifyContent: 'center', overflow: 'hidden',
   },
-  manualBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  manualBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 14 },
   disabled: { opacity: 0.6 },
   alert: { borderRadius: radius.md, padding: 14, marginTop: 14 },
-  alertOk: { backgroundColor: warna.successBg, borderWidth: 1, borderColor: '#A7F3D0' },
-  alertWarn: { backgroundColor: warna.warnBg, borderWidth: 1, borderColor: '#FDE68A' },
-  alertErr: { backgroundColor: warna.dangerBg, borderWidth: 1, borderColor: '#FECACA' },
+  alertOk: { backgroundColor: warna.successBg, borderWidth: 1, borderColor: 'rgba(62,207,142,.35)' },
+  alertWarn: { backgroundColor: warna.warnBg, borderWidth: 1, borderColor: 'rgba(229,166,59,.35)' },
+  alertErr: { backgroundColor: warna.dangerBg, borderWidth: 1, borderColor: 'rgba(224,89,79,.35)' },
   alertHead: { flexDirection: 'row', alignItems: 'center' },
   alertTitle: { fontWeight: '800', fontSize: 14 },
   alertName: { color: warna.teks, fontWeight: '700', fontSize: 13, marginTop: 3 },
@@ -398,28 +430,26 @@ const styles = StyleSheet.create({
   roleBuatText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
   roleBuatTextActive: { color: warna.primaryDark },
   fieldBuat: { marginBottom: 12 },
-  labelBuat: { fontSize: 13, fontWeight: '700', color: '#4A4138', marginBottom: 7 },
+  labelBuat: { fontSize: 13, fontWeight: '700', color: warna.emasText, marginBottom: 7 },
   inputBuat: {
     borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: warna.teks,
     backgroundColor: warna.bg,
   },
-  buatBtn: {
-    backgroundColor: warna.primary, borderRadius: radius.md,
-    paddingVertical: 14, alignItems: 'center', marginTop: 4,
-  },
-  buatBtnText: { color: '#fff', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  buatBtn: { borderRadius: radius.md, overflow: 'hidden', marginTop: 4 },
+  buatBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   headData: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filterRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: 6 },
   filterInput: {
     flex: 1, borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
-    paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, backgroundColor: '#FAFBFF',
+    paddingHorizontal: 14, paddingVertical: 10, fontSize: 13,
+    backgroundColor: warna.bg, color: warna.teks,
   },
   filterBtn: {
     backgroundColor: warna.emasBg, borderRadius: radius.md, paddingHorizontal: 18, justifyContent: 'center',
   },
   filterBtnText: { color: warna.primaryDark, fontWeight: '700', fontSize: 13 },
-  empty: { color: '#94A3B8', textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 22, fontSize: 13 },
   rowItem: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 11,
     borderBottomWidth: 1, borderBottomColor: warna.border,

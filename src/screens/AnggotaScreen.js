@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../api';
 import { warna, radius, bayangan } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
@@ -109,7 +110,7 @@ export default function AnggotaScreen({ user, onLogout }) {
           <View style={styles.qrBox}>
             <View style={styles.qrFrame}>
               {qr ? (
-                <QRCode value={qr} size={200} />
+                <QRCode value={qr} size={200} color="#1A1408" backgroundColor="#FFFFFF" />
               ) : (
                 <ActivityIndicator size="large" color={warna.primary} />
               )}
@@ -122,7 +123,12 @@ export default function AnggotaScreen({ user, onLogout }) {
             onPress={() => setQr(user.qr_code)}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnSmText}>Minta Ulang QR Code</Text>
+            <LinearGradient
+              colors={[warna.gold1, warna.gold2, warna.gold3]}
+              style={styles.btnSmGrad}
+            >
+              <Text style={styles.btnSmText}>Minta Ulang QR Code</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Kartu>
 
@@ -158,18 +164,18 @@ const styles = StyleSheet.create({
   qrBox: { alignItems: 'center', marginTop: 18 },
   qrFrame: {
     backgroundColor: '#fff', borderRadius: radius.lg, padding: 14,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#F3CDD6',
+    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(212,175,55,.55)',
+    shadowColor: '#D4AF37', shadowOpacity: 0.18, shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 }, elevation: 8,
   },
   qrText: {
     textAlign: 'center', marginTop: 14, fontFamily: 'monospace',
-    fontSize: 15, letterSpacing: 1.2, color: warna.primary, fontWeight: '700',
+    fontSize: 15, letterSpacing: 1.2, color: warna.emasText, fontWeight: '700',
   },
-  btnSm: {
-    alignSelf: 'center', marginTop: 16, backgroundColor: warna.primary,
-    borderRadius: 99, paddingHorizontal: 22, paddingVertical: 11,
-  },
-  btnSmText: { color: '#fff', fontWeight: '700', fontSize: 13, letterSpacing: 0.3 },
-  empty: { color: '#94A3B8', textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  btnSm: { alignSelf: 'center', marginTop: 16, borderRadius: 99, overflow: 'hidden' },
+  btnSmGrad: { paddingHorizontal: 24, paddingVertical: 11, alignItems: 'center' },
+  btnSmText: { color: '#241B0A', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
+  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 22, fontSize: 13 },
   sabtuOk: { backgroundColor: warna.successBg, borderRadius: radius.md, padding: 12, marginTop: 10 },
   sabtuOkText: { color: warna.successText, fontSize: 13, fontWeight: '600', lineHeight: 19 },
   sabtuBelum: { backgroundColor: warna.warnBg, borderRadius: radius.md, padding: 12, marginTop: 10 },

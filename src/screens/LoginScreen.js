@@ -87,6 +87,7 @@ export default function LoginScreen({ onLogin }) {
           </View>
 
           <View style={styles.card}>
+            <View style={styles.cardTop} />
             <View style={styles.cardHead}>
               <View style={styles.garisEmas} />
               <Text style={styles.cardTitle}>Masuk Akun</Text>
@@ -108,7 +109,7 @@ export default function LoginScreen({ onLogin }) {
               <TextInput
                 style={styles.input}
                 placeholder="Masukkan username"
-                placeholderTextColor="#A89F95"
+                placeholderTextColor="#8A7F6A"
                 autoCapitalize="none"
                 value={form.username}
                 onChangeText={v => set('username', v)}
@@ -120,7 +121,7 @@ export default function LoginScreen({ onLogin }) {
               <TextInput
                 style={styles.input}
                 placeholder="Masukkan kata sandi"
-                placeholderTextColor="#A89F95"
+                placeholderTextColor="#8A7F6A"
                 secureTextEntry
                 value={form.password}
                 onChangeText={v => set('password', v)}
@@ -134,11 +135,11 @@ export default function LoginScreen({ onLogin }) {
               activeOpacity={0.85}
             >
               <LinearGradient
-                colors={[warna.primary, warna.primaryDark]}
+                colors={[warna.gold1, warna.gold2, warna.gold3]}
                 style={[styles.btnGrad, bayangan.tombol]}
               >
                 {loading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#241B0A" />
                 ) : (
                   <Text style={styles.btnText}>Masuk</Text>
                 )}
@@ -168,8 +169,13 @@ const styles = StyleSheet.create({
   subBrand: { color: 'rgba(255,255,255,.72)', fontSize: 13, marginTop: 4 },
   card: {
     backgroundColor: warna.card, borderRadius: radius.xl, padding: 22,
-    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 }, elevation: 10,
+    borderWidth: 1, borderColor: 'rgba(212,175,55,.22)',
+    shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 }, elevation: 10, overflow: 'hidden',
+  },
+  cardTop: {
+    position: 'absolute', top: 0, left: 24, right: 24, height: 3,
+    borderRadius: 2, backgroundColor: 'rgba(212,175,55,.5)',
   },
   cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
   garisEmas: { width: 4, height: 22, borderRadius: 2, backgroundColor: warna.emas, marginRight: 10 },
@@ -184,11 +190,11 @@ const styles = StyleSheet.create({
   roleDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#D8CFC4' },
   roleDotActive: { backgroundColor: warna.primary },
   roleText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
-  roleTextActive: { color: warna.primaryDark },
+  roleTextActive: { color: warna.emasText },
   alertErr: { backgroundColor: warna.dangerBg, borderRadius: 12, padding: 12, marginBottom: 14 },
   alertErrText: { color: warna.dangerText, fontSize: 13, fontWeight: '600' },
   field: { marginBottom: 14 },
-  label: { fontSize: 13, fontWeight: '700', color: '#4A4138', marginBottom: 7 },
+  label: { fontSize: 13, fontWeight: '700', color: warna.emasText, marginBottom: 7 },
   input: {
     borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
     paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: warna.teks,
@@ -196,7 +202,7 @@ const styles = StyleSheet.create({
   },
   btnPrimary: { marginTop: 6 },
   btnGrad: { borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
-  btnText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: 0.4 },
+  btnText: { color: '#241B0A', fontWeight: '800', fontSize: 16, letterSpacing: 0.4 },
   disabled: { opacity: 0.6 },
   note: {
     textAlign: 'center', color: warna.muted, fontSize: 12, marginTop: 16, lineHeight: 18,
