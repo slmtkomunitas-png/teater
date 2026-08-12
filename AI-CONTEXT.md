@@ -43,16 +43,14 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 
 ## Hosting / deploy (status penting!)
 
-- **Sekarang**: APK terpasang memakai `extra.apiUrl` = **alamat ngrok** (`https://unfocused-algorithm-tables.ngrok-free.dev`) di `app.json`. Ngrok jalan di HP (anak-proses Acode) → **kalau Acode/HP mati, server ikut mati → user kena "Login gagal, coba lagi"**. Ada watchdog `/public/.tools/watchdog.sh` (di luar repo) yang menyalakan ulang otomatis tiap 20 detik, tapi tetap tergantung HP.
-- **Rencana**: pindah ke cloud 24/7. Sudah disiapkan:
-  - `server/Dockerfile`, `fly.toml`, `.dockerignore` → Fly.io (~$2-3/bln)
-  - `server/DEPLOY.md` → panduan Railway (~$5/bln) / Fly.io / VPS
-  - `server/scripts/setup-vps.sh` + `install-duckdns.sh` → VPS + HTTPS DuckDNS/Caddy
-- **Server sudah cloud-ready**: env `DB_PATH` untuk mengarahkan file SQLite, dan auto-seed admin saat DB kosong
-- ⚠️ **Saat URL ganti (ngrok → cloud), wajib:**
-  1. Ganti `extra.apiUrl` di `app.json`
-  2. Rebuild APK (`expo prebuild` + `assembleRelease`)
-  3. Install ulang di semua HP
+- **SEKARANG (produksi)**: server & ngrok jalan di **VPS Ubuntu** (rental Shopee, 157.66.54.166, SSH port 3014). VPS ini **NAT** — hanya port SSH 3014 yang terbuka dari luar, port 80/443 TIDAK bisa diakses publik → jangan coba pakai Caddy/Let's Encrypt di sini; **ngrok harus jalan di mesin yang sama** (sudah terpasang sebagai `ngrok.service` systemd, auto-restart).
+  - Soal server: `absensi.service` systemd → `/opt/absensi` (Node 22, `node server.js`, DB di `/opt/absensi/absensi.db`; admin `admin`/`admin123` di-seed otomatis jika DB kosong)
+  - Tunnel: `https://unfocused-algorithm-tables.ngrok-free.dev` (static domain dari akun ngrok pemilik, token ada di `/public/.config/ngrok/ngrok.yml` dan `/etc/ngrok/ngrok.yml` di VPS — keduanya di luar repo)
+  - Caddy di VPS sudah di-disable (tidak berguna di NAT, gagal ambil sertifikat)
+  - Watchdog di HP (`/public/.tools/watchdog.sh`) sekarang hanya menjaga server lokal untuk develop — **jangan** menyalakan ngrok di HP lagi (rebutan static domain dengan VPS)
+- **Hubungan APK**: `extra.apiUrl` di `app.json` = alamat ngrok static di atas → APK yang terpasang TIDAK perlu di-build ulang selama URL itu tetap
+- **Rencana cadangan**: file `server/Dockerfile`, `fly.toml`, `server/DEPLOY.md` tetap tersimpan untuk pindah ke Railway/Fly (~$2-5/bln) bila VPS rental habis masa sewanya
+- ⚠️ Kalau URL berubah, wajib: ganti `extra.apiUrl` di `app.json` → rebuild APK → install ulang
 - ⚠️ APK release Android **memblokir HTTP plain** — URL harus `https://`
 
 ## Tips kalau user lapor bug

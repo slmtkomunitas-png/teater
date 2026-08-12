@@ -11,7 +11,7 @@ fi
 
 APP_DIR=/opt/absensi
 PORT=3000
-REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+APP_SRC="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "==> Install Node.js 22"
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
@@ -19,7 +19,7 @@ apt-get install -y nodejs
 
 echo "==> Copy server ke $APP_DIR"
 mkdir -p "$APP_DIR"
-cp -r "$REPO_DIR"/server/* "$APP_DIR"/
+cp -r "$APP_SRC"/* "$APP_DIR"/
 cd "$APP_DIR"
 rm -rf node_modules package-lock.json
 npm install
