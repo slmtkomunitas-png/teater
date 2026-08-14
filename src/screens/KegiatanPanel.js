@@ -4,9 +4,8 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { LinearGradient } from 'expo-linear-gradient';
 import { api, API_URL, getToken } from '../api';
-import { warna, radius, bayangan } from '../theme';
+import { warna, radius } from '../theme';
 import { Chip, Kartu } from '../components';
 
 function getLastSaturday() {
@@ -192,21 +191,16 @@ export default function KegiatanPanel({ user }) {
           )}
 
           <TouchableOpacity
-            style={[styles.unduhBtn, bayangan.tombol, unduh && styles.disabled]}
+            style={[styles.unduhBtn, unduh && styles.disabled]}
             onPress={unduhCSV}
             disabled={unduh}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={[warna.gold1, warna.gold2, warna.gold3]}
-              style={styles.unduhGrad}
-            >
-              {unduh ? (
-                <ActivityIndicator color="#241B0A" />
-              ) : (
-                <Text style={styles.unduhBtnText}>Unduh & Bagikan Laporan CSV</Text>
-              )}
-            </LinearGradient>
+            {unduh ? (
+              <ActivityIndicator color="#0E0C0A" />
+            ) : (
+              <Text style={styles.unduhBtnText}>Unduh & Bagikan Laporan CSV</Text>
+            )}
           </TouchableOpacity>
         </>
       ) : (
@@ -247,9 +241,11 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: '800', fontSize: 12 },
   rowTitle: { fontSize: 14, fontWeight: '700', color: warna.teks },
   rowSub: { fontSize: 12, color: warna.muted, marginTop: 1 },
-  unduhBtn: { borderRadius: radius.md, overflow: 'hidden', marginTop: 16, marginBottom: 24 },
-  unduhGrad: { alignItems: 'center', paddingVertical: 15 },
-  unduhBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  unduhBtn: {
+    backgroundColor: warna.primary, borderRadius: radius.md, paddingVertical: 15,
+    marginTop: 16, marginBottom: 24, alignItems: 'center',
+  },
+  unduhBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   disabled: { opacity: 0.6 },
   empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 30, fontSize: 13 },
 });

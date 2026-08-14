@@ -4,9 +4,8 @@ import {
   TextInput, ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../api';
-import { warna, radius, bayangan } from '../theme';
+import { warna, radius } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
 
 import KegiatanPanel from './KegiatanPanel';
@@ -120,32 +119,18 @@ export default function AdminScreen({ user, onLogout }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tabBtn, tab === 'scan' && styles.tabActive]}
-            onPress={() => setTab('scan')}
-            activeOpacity={0.8}
-          >
-            {tab === 'scan' ? (
-              <LinearGradient colors={[warna.gold1, warna.gold2]} style={styles.tabGrad}>
-                <Text style={styles.tabTextActive}>Scan</Text>
-              </LinearGradient>
-            ) : (
-              <Text style={styles.tabText}>Scan</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabBtn, tab === 'kegiatan' && styles.tabActive]}
-            onPress={() => setTab('kegiatan')}
-            activeOpacity={0.8}
-          >
-            {tab === 'kegiatan' ? (
-              <LinearGradient colors={[warna.gold1, warna.gold2]} style={styles.tabGrad}>
-                <Text style={styles.tabTextActive}>Kegiatan</Text>
-              </LinearGradient>
-            ) : (
-              <Text style={styles.tabText}>Kegiatan</Text>
-            )}
-          </TouchableOpacity>
+          {['scan', 'kegiatan'].map(t => (
+            <TouchableOpacity
+              key={t}
+              style={[styles.tabBtn, tab === t && styles.tabActive]}
+              onPress={() => setTab(t)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
+                {t === 'scan' ? 'Scan' : 'Kegiatan'}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {tab === 'scan' ? (<>
@@ -181,16 +166,11 @@ export default function AdminScreen({ user, onLogout }) {
             </View>
           ) : (
             <TouchableOpacity
-              style={[styles.scanBtn, bayangan.tombol]}
+              style={[styles.scanBtn]}
               onPress={bukaKamera}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={[warna.gold1, warna.gold2, warna.gold3]}
-                style={styles.gradBtn}
-              >
-                <Text style={styles.scanBtnText}>Mulai Scan Kamera</Text>
-              </LinearGradient>
+              <Text style={styles.scanBtnText}>Mulai Scan Kamera</Text>
             </TouchableOpacity>
           )}
 
@@ -209,12 +189,7 @@ export default function AdminScreen({ user, onLogout }) {
               disabled={mengirim}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={[warna.gold1, warna.gold2, warna.gold3]}
-                style={styles.gradBtnFlex}
-              >
-                {mengirim ? <ActivityIndicator color="#1A1408" /> : <Text style={styles.manualBtnText}>Catat</Text>}
-              </LinearGradient>
+              {mengirim ? <ActivityIndicator color="#0E0C0A" /> : <Text style={styles.manualBtnText}>Catat</Text>}
             </TouchableOpacity>
           </View>
 
@@ -308,12 +283,7 @@ export default function AdminScreen({ user, onLogout }) {
             disabled={membuat}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={[warna.gold1, warna.gold2, warna.gold3]}
-              style={styles.gradBtn}
-            >
-              {membuat ? <ActivityIndicator color="#1A1408" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
-            </LinearGradient>
+            {membuat ? <ActivityIndicator color="#0E0C0A" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
           </TouchableOpacity>
         </Kartu>
 
@@ -366,18 +336,17 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: warna.bg },
   content: { padding: 16, paddingBottom: 40 },
   tabBar: {
-    flexDirection: 'row', backgroundColor: warna.primaryBg,
-    borderRadius: radius.md, padding: 5, marginBottom: 16, gap: 5,
+    flexDirection: 'row', backgroundColor: warna.card, borderWidth: 1,
+    borderColor: warna.border, borderRadius: radius.md, padding: 4, marginBottom: 16, gap: 4,
   },
   tabBtn: {
     flex: 1, paddingVertical: 10, borderRadius: radius.sm, alignItems: 'center',
   },
-  tabActive: { backgroundColor: 'rgba(212,175,55,.15)', borderRadius: radius.sm },
+  tabActive: { backgroundColor: warna.primary },
   tabText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
-  tabTextActive: { color: '#241B0A', fontWeight: '800', fontSize: 14 },
-  tabGrad: { flex: 1, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
-  statRow: { flexDirection: 'row', gap: 10, marginBottom: 4 },
-  cardTitle: { fontSize: 17, fontWeight: '800', color: warna.teks },
+  tabTextActive: { color: '#0E0C0A', fontWeight: '800', fontSize: 14 },
+  statRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
+  cardTitle: { fontSize: 16, fontWeight: '800', color: warna.teks },
   cardSub: { fontSize: 12.5, color: warna.muted, marginTop: 4, marginBottom: 16, lineHeight: 18 },
   cameraWrap: { borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#0F172A' },
   camera: { height: 300 },
@@ -395,10 +364,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22, paddingVertical: 9,
   },
   tutupText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  scanBtn: { borderRadius: radius.md, overflow: 'hidden' },
-  gradBtn: { alignItems: 'center', paddingVertical: 15 },
-  gradBtnFlex: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  scanBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  scanBtn: {
+    backgroundColor: warna.primary, borderRadius: radius.md,
+    paddingVertical: 15, alignItems: 'center',
+  },
+  scanBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   manualWrap: { flexDirection: 'row', gap: 10, marginTop: 14 },
   manualInput: {
     flex: 1, borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
@@ -406,10 +376,10 @@ const styles = StyleSheet.create({
     backgroundColor: warna.bg, color: warna.teks,
   },
   manualBtn: {
-    borderRadius: radius.md,
-    justifyContent: 'center', overflow: 'hidden',
+    backgroundColor: warna.primary, borderRadius: radius.md,
+    paddingHorizontal: 20, justifyContent: 'center',
   },
-  manualBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 14 },
+  manualBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 14 },
   disabled: { opacity: 0.6 },
   alert: { borderRadius: radius.md, padding: 14, marginTop: 14 },
   alertOk: { backgroundColor: warna.successBg, borderWidth: 1, borderColor: 'rgba(62,207,142,.35)' },
@@ -436,8 +406,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: warna.teks,
     backgroundColor: warna.bg,
   },
-  buatBtn: { borderRadius: radius.md, overflow: 'hidden', marginTop: 4 },
-  buatBtnText: { color: '#241B0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  buatBtn: {
+    backgroundColor: warna.primary, borderRadius: radius.md,
+    paddingVertical: 14, alignItems: 'center', marginTop: 4,
+  },
+  buatBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   headData: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filterRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: 6 },
   filterInput: {

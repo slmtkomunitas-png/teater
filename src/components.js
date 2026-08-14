@@ -62,7 +62,6 @@ export function Header({ title, subtitle, aksi }) {
           </View>
           {aksi}
         </View>
-        <View style={styles.garisEmas} />
       </LinearGradient>
     </View>
   );
@@ -77,53 +76,39 @@ export function BtnKeluar({ onPress }) {
 }
 
 export function Kartu({ children, style }) {
-  return (
-    <View style={[styles.kartu, bayangan.card, style]}>
-      <View style={styles.kartuTop} />
-      {children}
-    </View>
-  );
+  return <View style={[styles.kartu, bayangan.card, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   avatar: { alignItems: 'center', justifyContent: 'center' },
   headerWrap: { backgroundColor: warna.gradasi2 },
   headerLogoWrap: {
-    width: 46, height: 46, borderRadius: 13, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(212,175,55,.65)', backgroundColor: '#0A0806',
+    width: 42, height: 42, borderRadius: 12, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(212,175,55,.35)', backgroundColor: '#0A0806',
   },
   headerLogo: { width: '100%', height: '100%' },
   chip: {
-    borderRadius: 99, paddingHorizontal: 12, paddingVertical: 5,
-    alignSelf: 'flex-start', borderWidth: 1,
+    borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4,
+    alignSelf: 'flex-start',
   },
   chipText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3 },
   stat: {
     flex: 1, borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(212,175,55,.18)',
   },
   statNum: { fontSize: 26, fontWeight: '800' },
   statLabel: { fontSize: 11, color: warna.muted, marginTop: 3, textAlign: 'center' },
-  header: { paddingHorizontal: 20, paddingBottom: 18, overflow: 'hidden' },
-  garisEmas: {
-    height: 2, width: 64, borderRadius: 2, marginTop: 14,
-    backgroundColor: warna.emas, opacity: 0.85,
-  },
+  header: { paddingHorizontal: 20, paddingBottom: 16, overflow: 'hidden' },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
-  headerTitle: { color: '#fff', fontSize: 19, fontWeight: '800', letterSpacing: 0.2 },
-  headerSubtitle: { color: 'rgba(240,216,132,.65)', fontSize: 13, marginTop: 3 },
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: 0.1 },
+  headerSubtitle: { color: 'rgba(240,216,132,.65)', fontSize: 13, marginTop: 2 },
   keluar: {
-    borderWidth: 1, borderColor: 'rgba(212,175,55,.55)', borderRadius: 99,
-    paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(212,175,55,.08)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,.25)', borderRadius: 99,
+    paddingHorizontal: 14, paddingVertical: 7,
   },
-  keluarText: { color: warna.emasText, fontSize: 13, fontWeight: '700' },
+  keluarText: { color: 'rgba(255,255,255,.75)', fontSize: 13, fontWeight: '700' },
   kartu: {
-    backgroundColor: warna.card, borderRadius: radius.lg, padding: 20, marginBottom: 16,
-    borderWidth: 1, borderColor: warna.border, overflow: 'hidden',
-  },
-  kartuTop: {
-    position: 'absolute', top: 0, left: 20, right: 20, height: 2,
-    borderRadius: 2, backgroundColor: 'rgba(212,175,55,.28)',
+    backgroundColor: warna.card, borderRadius: radius.md, padding: 18, marginBottom: 14,
+    borderWidth: 1, borderColor: warna.border,
   },
   baris: { flexDirection: 'row', alignItems: 'center' },
 });
