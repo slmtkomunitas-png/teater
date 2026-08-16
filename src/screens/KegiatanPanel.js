@@ -5,7 +5,7 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { api, API_URL, getToken } from '../api';
-import { warna, radius } from '../theme';
+import { warna, radius, bayangan } from '../theme';
 import { Chip, Kartu } from '../components';
 
 function getLastSaturday() {
