@@ -4,8 +4,6 @@ export const warna = {
   gold1: '#F3D97E',
   gold2: '#D4AF37',
   gold3: '#9A741F',
-  gradasi1: '#1B1713',
-  gradasi2: '#0A0806',
   emas: '#D4AF37',
   emasBg: '#221C10',
   emasText: '#F0D884',
@@ -26,26 +24,12 @@ export const warna = {
   dangerBg: '#261210',
   dangerText: '#F0A295',
   white: '#FFFFFF',
+  darkOnGold: '#0E0C0A',
+  placeholder: '#8A7F6A',
+  empty: '#7A6F5C',
 };
 
 export const radius = { sm: 10, md: 14, lg: 20, xl: 26 };
-
-export const bayangan = {
-  card: {
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  tombol: {
-    shadowColor: '#D4AF37',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 7,
-  },
-};
 
 export const inisial = (nama) =>
   nama

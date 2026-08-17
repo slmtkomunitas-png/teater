@@ -37,8 +37,11 @@ export async function setToken(token) {
   else await AsyncStorage.removeItem(KUNCI_TOKEN);
 }
 
-export async function api(path, { method = 'GET', body } = {}) {
+export async function api(path, { method = 'GET', body, timeout = 12000 } = {}) {
+  if (!API_URL) throw new Error('Aplikasi belum dikonfigurasi (apiUrl kosong). Hubungi admin.');
   const token = await getToken();
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeout);
   let res;
   try {
     res = await fetch(`${API_URL}${path}`, {
@@ -48,9 +51,12 @@ export async function api(path, { method = 'GET', body } = {}) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,
+      signal: ctrl.signal,
     });
   } catch {
     throw new Error('Tidak dapat terhubung ke server. Pastikan server dan koneksi internet aktif.');
+  } finally {
+    clearTimeout(t);
   }
   const text = await res.text();
   let data = {};

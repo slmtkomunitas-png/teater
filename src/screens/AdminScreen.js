@@ -7,6 +7,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { api } from '../api';
 import { warna, radius } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
+import { tanggalLokal, formatJam } from '../helpers';
 
 import KegiatanPanel from './KegiatanPanel';
 
@@ -23,6 +24,8 @@ export default function AdminScreen({ user, onLogout }) {
   const [filter, setFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [mengirim, setMengirim] = useState(false);
+  const [muat, setMuat] = useState(true);
+  const [maks, setMaks] = useState(50);
   const [buat, setBuat] = useState({ nama: '', username: '', password: '', role: 'anggota' });
   const [infoBuat, setInfoBuat] = useState('');
   const [membuat, setMembuat] = useState(false);
@@ -52,12 +55,17 @@ export default function AdminScreen({ user, onLogout }) {
   }
 
   const loadData = useCallback(async () => {
-    const [r1, r2] = await Promise.all([
-      api('/api/absensi'),
-      api('/api/anggota'),
-    ]);
-    setData(r1.data);
-    setAnggota(r2.data.length);
+    setMuat(true);
+    try {
+      const [r1, r2] = await Promise.all([
+        api('/api/absensi'),
+        api('/api/anggota'),
+      ]);
+      setData(r1.data);
+      setAnggota(r2.data.length);
+    } finally {
+      setMuat(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,7 +79,7 @@ export default function AdminScreen({ user, onLogout }) {
   }
 
   async function catat(kode) {
-    if (!kode) return;
+    if (!kode || mengirim) return;
     setMengirim(true);
     setGagal('');
     setHasil(null);
@@ -85,14 +93,17 @@ export default function AdminScreen({ user, onLogout }) {
       loadData().catch(() => {});
     } catch (e) {
       setGagal(e.message);
+      setPemindai(true);
     } finally {
       setMengirim(false);
     }
   }
 
   async function bukaKamera() {
+    if (mengirim) return;
     if (!permission?.granted) {
-      await requestPermission();
+      const r = await requestPermission();
+      if (!r.granted) return;
     }
     setKam(true);
     setPemindai(true);
@@ -100,11 +111,13 @@ export default function AdminScreen({ user, onLogout }) {
     setGagal('');
   }
 
-  const tanggalHariIni = new Date().toISOString().slice(0, 10);
+  const tanggalHariIni = tanggalLokal();
   const hadirHariIni = new Set(
     data.filter(d => d.tanggal === tanggalHariIni).map(d => d.username)
   ).size;
   const tampil = filter ? data.filter(d => d.tanggal === filter) : data;
+  const filterValid = !filter || /^\d{4}-\d{2}-\d{2}$/.test(filter);
+  const ditampilkan = tampil.slice(0, maks);
 
   return (
     <View style={styles.flex}>
@@ -152,22 +165,38 @@ export default function AdminScreen({ user, onLogout }) {
                 style={styles.camera}
                 facing="back"
                 barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                onBarcodeScanned={pemindai ? (r) => catat(r.data) : undefined}
+                onBarcodeScanned={pemindai && !mengirim ? (r) => catat(r.data) : undefined}
               />
-              <View style={styles.overlayKiri} pointerEvents="none" />
-              <View style={styles.overlayKanan} pointerEvents="none" />
-              <TouchableOpacity
-                style={styles.tutupBtn}
-                onPress={() => { setKam(false); setPemindai(false); }}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.tutupText}>Tutup Kamera</Text>
-              </TouchableOpacity>
+              {!pemindai && hasil && (
+                <View style={styles.hasilKamera}>
+                  <Text style={styles.hasilKameraTeks}>✓ {hasil.nama}</Text>
+                </View>
+              )}
+              <View style={styles.camRow}>
+                <TouchableOpacity
+                  style={styles.tutupBtn}
+                  onPress={() => { setKam(false); setPemindai(false); }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.tutupText}>Tutup Kamera</Text>
+                </TouchableOpacity>
+                {!pemindai && (
+                  <TouchableOpacity
+                    style={[styles.lagiBtn, mengirim && styles.disabled]}
+                    onPress={() => { setPemindai(true); setHasil(null); setGagal(''); }}
+                    disabled={mengirim}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.lagiBtnText}>Scan Lagi</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           ) : (
             <TouchableOpacity
-              style={[styles.scanBtn]}
+              style={[styles.scanBtn, mengirim && styles.disabled]}
               onPress={bukaKamera}
+              disabled={mengirim}
               activeOpacity={0.85}
             >
               <Text style={styles.scanBtnText}>Mulai Scan Kamera</Text>
@@ -178,7 +207,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.manualInput}
               placeholder="Kode QR manual, mis. ABS-XXXX"
-              placeholderTextColor="#8A7F6A"
+              placeholderTextColor={warna.placeholder}
               autoCapitalize="characters"
               value={kodeManual}
               onChangeText={setKodeManual}
@@ -189,7 +218,7 @@ export default function AdminScreen({ user, onLogout }) {
               disabled={mengirim}
               activeOpacity={0.85}
             >
-              {mengirim ? <ActivityIndicator color="#0E0C0A" /> : <Text style={styles.manualBtnText}>Catat</Text>}
+              {mengirim ? <ActivityIndicator color={warna.darkOnGold} /> : <Text style={styles.manualBtnText}>Catat</Text>}
             </TouchableOpacity>
           </View>
 
@@ -202,7 +231,7 @@ export default function AdminScreen({ user, onLogout }) {
                     {hasil.sudah ? 'Sudah tercatat hari ini' : 'Kehadiran tercatat'}
                   </Text>
                   <Text style={styles.alertName}>{hasil.nama}</Text>
-                  <Text style={styles.alertSub}>{hasil.tanggal} — pukul {hasil.jam}</Text>
+                  <Text style={styles.alertSub}>{formatJam(hasil.jam)} WIB — {hasil.tanggal}</Text>
                 </View>
                 <Chip label={hasil.sudah ? 'DUPLIKAT' : 'BARU'} tone={hasil.sudah ? 'warn' : 'success'} />
               </View>
@@ -241,7 +270,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Contoh: Budi Santoso"
-              placeholderTextColor="#8A7F6A"
+              placeholderTextColor={warna.placeholder}
               value={buat.nama}
               onChangeText={v => setBuat(b => ({ ...b, nama: v }))}
             />
@@ -251,7 +280,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Untuk login anggota"
-              placeholderTextColor="#8A7F6A"
+              placeholderTextColor={warna.placeholder}
               autoCapitalize="none"
               value={buat.username}
               onChangeText={v => setBuat(b => ({ ...b, username: v }))}
@@ -262,7 +291,7 @@ export default function AdminScreen({ user, onLogout }) {
             <TextInput
               style={styles.inputBuat}
               placeholder="Minimal 6 karakter"
-              placeholderTextColor="#8A7F6A"
+              placeholderTextColor={warna.placeholder}
               secureTextEntry
               value={buat.password}
               onChangeText={v => setBuat(b => ({ ...b, password: v }))}
@@ -283,7 +312,7 @@ export default function AdminScreen({ user, onLogout }) {
             disabled={membuat}
             activeOpacity={0.85}
           >
-            {membuat ? <ActivityIndicator color="#0E0C0A" /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
+            {membuat ? <ActivityIndicator color={warna.darkOnGold} /> : <Text style={styles.buatBtnText}>Buat Akun</Text>}
           </TouchableOpacity>
         </Kartu>
 
@@ -296,32 +325,43 @@ export default function AdminScreen({ user, onLogout }) {
           <View style={styles.filterRow}>
             <TextInput
               style={styles.filterInput}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#8A7F6A"
+              placeholder="Filter: YYYY-MM-DD"
+              placeholderTextColor={warna.placeholder}
               value={filter}
-              onChangeText={setFilter}
+              onChangeText={v => { setFilter(v); setMaks(50); }}
             />
-            <TouchableOpacity style={styles.filterBtn} onPress={() => setFilter('')} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.filterBtn} onPress={() => { setFilter(''); setMaks(50); }} activeOpacity={0.85}>
               <Text style={styles.filterBtnText}>Semua</Text>
             </TouchableOpacity>
           </View>
 
-          {tampil.length === 0 ? (
+          {!filterValid ? (
+            <Text style={styles.empty}>Format filter salah — gunakan YYYY-MM-DD (mis. 2026-08-15)</Text>
+          ) : muat ? (
+            <ActivityIndicator size="large" color={warna.primary} style={{ marginVertical: 26 }} />
+          ) : tampil.length === 0 ? (
             <Text style={styles.empty}>Belum ada data kehadiran</Text>
           ) : (
-            tampil.slice(0, 50).map((d, i) => (
-              <View key={d.id} style={styles.rowItem}>
-                <Avatar nama={d.nama} size={38} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.rowTitle}>{d.nama}</Text>
-                  <Text style={styles.rowSub}>@{d.username}</Text>
+            <>
+              {ditampilkan.map((d, i) => (
+                <View key={d.id} style={styles.rowItem}>
+                  <Avatar nama={d.nama} size={38} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.rowTitle}>{d.nama}</Text>
+                    <Text style={styles.rowSub}>@{d.username}</Text>
+                  </View>
+                  <View style={styles.rowTanggal}>
+                    <Text style={styles.rowTglText}>{d.tanggal}</Text>
+                    <Text style={styles.rowJamText}>{formatJam(d.jam)}</Text>
+                  </View>
                 </View>
-                <View style={styles.rowTanggal}>
-                  <Text style={styles.rowTglText}>{d.tanggal}</Text>
-                  <Text style={styles.rowJamText}>{d.jam}</Text>
-                </View>
-              </View>
-            ))
+              ))}
+              {tampil.length > maks && (
+                <TouchableOpacity style={styles.muatBtn} onPress={() => setMaks(maks + 100)} activeOpacity={0.85}>
+                  <Text style={styles.muatBtnText}>Muat lebih banyak ({tampil.length - maks} tersisa)</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </Kartu>
         </>) : (
@@ -344,31 +384,34 @@ const styles = StyleSheet.create({
   },
   tabActive: { backgroundColor: warna.primary },
   tabText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
-  tabTextActive: { color: '#0E0C0A', fontWeight: '800', fontSize: 14 },
+  tabTextActive: { color: warna.darkOnGold, fontWeight: '800', fontSize: 14 },
   statRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
   cardTitle: { fontSize: 16, fontWeight: '800', color: warna.teks },
   cardSub: { fontSize: 12.5, color: warna.muted, marginTop: 4, marginBottom: 16, lineHeight: 18 },
   cameraWrap: { borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#0F172A' },
   camera: { height: 300 },
-  overlayKiri: {
-    position: 'absolute', top: '18%', left: '10%', bottom: '18%', width: 44,
-    borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#fff', borderRadius: 6,
+  hasilKamera: {
+    position: 'absolute', top: 12, left: 12, right: 12,
+    backgroundColor: 'rgba(15,23,42,.8)', borderRadius: radius.md, paddingVertical: 8,
+    alignItems: 'center',
   },
-  overlayKanan: {
-    position: 'absolute', top: '18%', right: '10%', bottom: '18%', width: 44,
-    borderTopWidth: 3, borderRightWidth: 3, borderColor: '#fff', borderRadius: 6,
-  },
+  hasilKameraTeks: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  camRow: { flexDirection: 'row', gap: 10, padding: 12 },
   tutupBtn: {
-    position: 'absolute', bottom: 14, alignSelf: 'center',
-    backgroundColor: 'rgba(15,23,42,.75)', borderRadius: 99,
-    paddingHorizontal: 22, paddingVertical: 9,
+    flex: 1, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: radius.md,
+    paddingVertical: 11, alignItems: 'center',
   },
   tutupText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  lagiBtn: {
+    flex: 1, backgroundColor: warna.primary, borderRadius: radius.md,
+    paddingVertical: 11, alignItems: 'center',
+  },
+  lagiBtnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 13 },
   scanBtn: {
     backgroundColor: warna.primary, borderRadius: radius.md,
     paddingVertical: 15, alignItems: 'center',
   },
-  scanBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  scanBtnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   manualWrap: { flexDirection: 'row', gap: 10, marginTop: 14 },
   manualInput: {
     flex: 1, borderWidth: 1.5, borderColor: warna.border, borderRadius: radius.md,
@@ -379,7 +422,7 @@ const styles = StyleSheet.create({
     backgroundColor: warna.primary, borderRadius: radius.md,
     paddingHorizontal: 20, justifyContent: 'center',
   },
-  manualBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 14 },
+  manualBtnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 14 },
   disabled: { opacity: 0.6 },
   alert: { borderRadius: radius.md, padding: 14, marginTop: 14 },
   alertOk: { backgroundColor: warna.successBg, borderWidth: 1, borderColor: 'rgba(62,207,142,.35)' },
@@ -393,7 +436,7 @@ const styles = StyleSheet.create({
   alertOkTeks: { color: warna.successText, fontWeight: '700', fontSize: 13 },
   roleBuatRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   roleBuatBtn: {
-    flex: 1, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5,
+    flex: 1, paddingVertical: 10, borderRadius: radius.md, borderWidth: 1.5,
     borderColor: warna.border, backgroundColor: warna.bg, alignItems: 'center',
   },
   roleBuatBtnActive: { borderColor: warna.primary, backgroundColor: warna.primaryBg },
@@ -410,7 +453,7 @@ const styles = StyleSheet.create({
     backgroundColor: warna.primary, borderRadius: radius.md,
     paddingVertical: 14, alignItems: 'center', marginTop: 4,
   },
-  buatBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  buatBtnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   headData: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filterRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: 6 },
   filterInput: {
@@ -422,7 +465,12 @@ const styles = StyleSheet.create({
     backgroundColor: warna.emasBg, borderRadius: radius.md, paddingHorizontal: 18, justifyContent: 'center',
   },
   filterBtnText: { color: warna.primaryDark, fontWeight: '700', fontSize: 13 },
-  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  empty: { color: warna.empty, textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  muatBtn: {
+    marginTop: 14, borderWidth: 1, borderColor: warna.border, borderRadius: radius.md,
+    paddingVertical: 11, alignItems: 'center',
+  },
+  muatBtnText: { color: warna.primary, fontWeight: '700', fontSize: 13 },
   rowItem: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 11,
     borderBottomWidth: 1, borderBottomColor: warna.border,

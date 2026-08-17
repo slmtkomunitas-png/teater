@@ -38,6 +38,21 @@ if (totalUser.n === 0) {
 const app = express();
 app.use(express.json());
 
+const TZ_WIB = 7 * 60 * 60 * 1000;
+
+function waktuWIB(now = new Date()) {
+  const d = new Date(now.getTime() + TZ_WIB);
+  return {
+    tanggal: d.toISOString().slice(0, 10),
+    jam: d.toISOString().slice(11, 19),
+  };
+}
+
+function validTanggal(t) {
+  return typeof t === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t) &&
+    !Number.isNaN(Date.parse(t + 'T12:00:00Z'));
+}
+
 function hashPassword(pw) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.scryptSync(pw, salt, 64).toString('hex');
@@ -55,6 +70,7 @@ function randomQrCode() {
 }
 
 const sessions = new Map();
+const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 function makeToken() {
   return crypto.randomBytes(24).toString('hex');
@@ -63,8 +79,9 @@ function makeToken() {
 function auth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   const s = sessions.get(token);
-  if (!s) {
-    return res.status(401).json({ pesan: 'Silakan login terlebih dahulu' });
+  if (!s || s.exp < Date.now()) {
+    if (s) sessions.delete(token);
+    return res.status(401).json({ pesan: 'Sesi berakhir. Silakan login kembali' });
   }
   req.session = s;
   next();
@@ -72,8 +89,39 @@ function auth(req, res, next) {
 
 function optionalAuth(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (token && sessions.has(token)) req.session = sessions.get(token);
+  if (token && sessions.has(token)) {
+    const s = sessions.get(token);
+    if (s.exp < Date.now()) {
+      sessions.delete(token);
+    } else {
+      req.session = s;
+    }
+  }
   next();
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [t, s] of sessions) {
+    if (s.exp < now) sessions.delete(t);
+  }
+}, 60 * 60 * 1000).unref();
+
+const loginCoba = new Map();
+
+function checkRateLimit(ip, username) {
+  const kunci = `${ip}|${username}`;
+  const now = Date.now();
+  const catat = loginCoba.get(kunci);
+  if (!catat || catat.jendela < now) {
+    loginCoba.set(kunci, { jumlah: 1, jendela: now + 60 * 1000 });
+    return { ok: true };
+  }
+  if (catat.jumlah >= 5) {
+    return { ok: false, sisa: Math.ceil((catat.jendela - now) / 1000) };
+  }
+  catat.jumlah += 1;
+  return { ok: true };
 }
 
 app.get('/api/me', optionalAuth, (req, res) => {
@@ -86,8 +134,19 @@ app.post('/api/users', auth, (req, res) => {
     return res.status(403).json({ pesan: 'Hanya admin yang dapat membuat akun' });
   }
   const { nama, username, password, role } = req.body || {};
-  if (!nama || !username || !password) {
+  if (typeof nama !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ pesan: 'Semua kolom wajib diisi' });
+  }
+  const namaFinal = nama.trim();
+  const usernameFinal = username.trim();
+  if (!namaFinal || !usernameFinal || !password) {
+    return res.status(400).json({ pesan: 'Semua kolom wajib diisi' });
+  }
+  if (namaFinal.length < 2) {
+    return res.status(400).json({ pesan: 'Nama terlalu pendek' });
+  }
+  if (usernameFinal.length < 3 || /\s/.test(usernameFinal)) {
+    return res.status(400).json({ pesan: 'Username minimal 3 karakter tanpa spasi' });
   }
   if (password.length < 6) {
     return res.status(400).json({ pesan: 'Kata sandi minimal 6 karakter' });
@@ -97,7 +156,7 @@ app.post('/api/users', auth, (req, res) => {
     const info = db.prepare(
       `INSERT INTO user (nama, username, password, role, qr_code, dibuat_pada)
        VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(nama, username, hashPassword(password), r, randomQrCode(), new Date().toISOString());
+    ).run(namaFinal, usernameFinal, hashPassword(password), r, randomQrCode(), new Date().toISOString());
     const user = db.prepare('SELECT id, nama, username, role, qr_code FROM user WHERE id = ?')
       .get(info.lastInsertRowid);
     res.status(201).json({ pesan: 'Akun berhasil dibuat', user });
@@ -111,7 +170,17 @@ app.post('/api/users', auth, (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
-  const row = db.prepare('SELECT * FROM user WHERE username = ?').get(username);
+  if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
+    return res.status(400).json({ pesan: 'Username dan kata sandi wajib diisi' });
+  }
+  const ip = req.ip || req.socket.remoteAddress || '?';
+  const batas = checkRateLimit(ip, username.trim().toLowerCase());
+  if (!batas.ok) {
+    return res.status(429).json({
+      pesan: `Terlalu banyak percobaan login. Coba lagi dalam ${batas.sisa} detik`,
+    });
+  }
+  const row = db.prepare('SELECT * FROM user WHERE username = ?').get(username.trim());
   if (!row || !verifyPassword(password, row.password)) {
     return res.status(401).json({ pesan: 'Username atau kata sandi salah' });
   }
@@ -120,7 +189,8 @@ app.post('/api/login', (req, res) => {
     id: row.id, nama: row.nama, username: row.username,
     role: row.role, qr_code: row.qr_code,
   };
-  sessions.set(token, { user });
+  sessions.set(token, { user, exp: Date.now() + TOKEN_TTL_MS });
+  loginCoba.delete(`${ip}|${username.trim().toLowerCase()}`);
   res.json({ pesan: 'Login berhasil', token, user });
 });
 
@@ -155,20 +225,29 @@ app.post('/api/absensi', auth, (req, res) => {
       pesan: 'QR code tidak dikenali. Pastikan itu QR code anggota yang terdaftar',
     });
   }
-  const now = new Date();
-  const tanggal = now.toISOString().slice(0, 10);
-  const jam = now.toLocaleTimeString('id-ID', { hour12: false });
-  const dupe = db.prepare(
-    'SELECT * FROM absensi WHERE userId = ? AND tanggal = ?'
-  ).get(member.id, tanggal);
+  const now = waktuWIB();
+  const { tanggal, jam } = now;
+  let dupe;
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    dupe = db.prepare(
+      'SELECT * FROM absensi WHERE userId = ? AND tanggal = ?'
+    ).get(member.id, tanggal);
+    if (!dupe) {
+      db.prepare('INSERT INTO absensi (userId, tanggal, jam) VALUES (?, ?, ?)')
+        .run(member.id, tanggal, jam);
+    }
+    db.exec('COMMIT');
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
   if (dupe) {
     return res.json({
       pesan: 'Kehadiran sudah tercatat hari ini',
       sudah: true, nama: member.nama, tanggal, jam: dupe.jam,
     });
   }
-  db.prepare('INSERT INTO absensi (userId, tanggal, jam) VALUES (?, ?, ?)')
-    .run(member.id, tanggal, jam);
   res.status(201).json({
     pesan: `Kehadiran ${member.nama} berhasil dicatat`,
     sudah: false, nama: member.nama, tanggal, jam,
@@ -181,6 +260,9 @@ app.get('/api/absensi', auth, (req, res) => {
   }
   let rows;
   if (req.query.tanggal) {
+    if (!validTanggal(req.query.tanggal)) {
+      return res.status(400).json({ pesan: 'Format tanggal tidak valid (YYYY-MM-DD)' });
+    }
     rows = db.prepare(`
       SELECT a.id, a.tanggal, a.jam, u.nama, u.username
       FROM absensi a JOIN user u ON u.id = a.userId
@@ -208,7 +290,8 @@ app.get('/api/absensi/saya', auth, (req, res) => {
 
 function csvEscape(v) {
   const s = String(v ?? '');
-  return '"' + s.replace(/"/g, '""') + '"';
+  const aman = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  return '"' + aman.replace(/"/g, '""') + '"';
 }
 
 app.get('/api/absensi/laporan', auth, (req, res) => {
@@ -225,6 +308,10 @@ app.get('/api/absensi/laporan', auth, (req, res) => {
       'SELECT DISTINCT tanggal FROM absensi ORDER BY tanggal DESC'
     ).all();
     return res.json({ data: sessions.map(s => s.tanggal) });
+  }
+
+  if (!validTanggal(tanggal)) {
+    return res.status(400).json({ pesan: 'Format tanggal tidak valid (YYYY-MM-DD)' });
   }
 
   const rows = db.prepare(

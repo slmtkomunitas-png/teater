@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View, StyleSheet, Image } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api, getToken, setToken } from './src/api';
 import { warna } from './src/theme';
@@ -42,8 +42,10 @@ export default function App() {
   if (!siap) {
     return (
       <View style={styles.load}>
-        <Image source={require('./assets/icon.png')} style={styles.logo} resizeMode="cover" />
-        <ActivityIndicator size="large" color="#D4AF37" style={{ marginTop: 20 }} />
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>T</Text>
+        </View>
+        <ActivityIndicator size="large" color={warna.primary} style={{ marginTop: 20 }} />
       </View>
     );
   }
@@ -65,10 +67,11 @@ export default function App() {
 const styles = StyleSheet.create({
   load: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: warna.gradasi2,
+    backgroundColor: warna.bg,
   },
-  logo: {
-    width: 96, height: 96, borderRadius: 24, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: 'rgba(212,175,55,.55)',
+  badge: {
+    width: 72, height: 72, borderRadius: 20,
+    backgroundColor: warna.primary, alignItems: 'center', justifyContent: 'center',
   },
+  badgeText: { color: warna.darkOnGold, fontSize: 34, fontWeight: '900' },
 });

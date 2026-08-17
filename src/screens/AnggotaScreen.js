@@ -7,6 +7,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { api } from '../api';
 import { warna, radius } from '../theme';
 import { Avatar, Chip, Stat, Header, BtnKeluar, Kartu } from '../components';
+import { tanggalLokal, lastSaturday, formatTanggal, formatJam } from '../helpers';
 
 export default function AnggotaScreen({ user, onLogout }) {
   const [qr, setQr] = useState(null);
@@ -30,16 +31,8 @@ export default function AnggotaScreen({ user, onLogout }) {
     setRefreshing(false);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tanggalLokal();
   const hadirHariIni = riwayat.filter(r => r.tanggal === today).length;
-
-  function lastSaturday() {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = (day + 6) % 7 + 1;
-    d.setDate(d.getDate() - diff);
-    return d.toISOString().slice(0, 10);
-  }
   const sabtuIni = lastSaturday();
   const catatanSabtu = riwayat.find(r => r.tanggal === sabtuIni);
 
@@ -75,7 +68,7 @@ export default function AnggotaScreen({ user, onLogout }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>Kegiatan Sabtu Ini</Text>
               <Text style={styles.cardSub}>
-                Latihan rutin Sabtu — {sabtuIni}
+                Latihan rutin Sabtu — {formatTanggal(sabtuIni)}
               </Text>
             </View>
             <Chip label={catatanSabtu ? 'HADIR' : 'BELUM HADIR'} tone={catatanSabtu ? 'success' : 'warn'} />
@@ -83,7 +76,7 @@ export default function AnggotaScreen({ user, onLogout }) {
           {catatanSabtu ? (
             <View style={styles.sabtuOk}>
               <Text style={styles.sabtuOkText}>
-                Anda tercatat hadir pukul {catatanSabtu.jam}. Tetap semangat latihan!
+                Anda tercatat hadir pukul {formatJam(catatanSabtu.jam)} WIB. Tetap semangat latihan!
               </Text>
             </View>
           ) : (
@@ -109,21 +102,13 @@ export default function AnggotaScreen({ user, onLogout }) {
           <View style={styles.qrBox}>
             <View style={styles.qrFrame}>
               {qr ? (
-                <QRCode value={qr} size={200} color="#0E0C0A" backgroundColor="#FFFFFF" />
+                <QRCode value={qr} size={200} color={warna.darkOnGold} backgroundColor="#FFFFFF" />
               ) : (
                 <ActivityIndicator size="large" color={warna.primary} />
               )}
             </View>
           </View>
-          <Text style={styles.qrText}>{qr || ''}</Text>
-
-          <TouchableOpacity
-            style={styles.btnSm}
-            onPress={() => setQr(user.qr_code)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.btnSmText}>Minta Ulang QR Code</Text>
-          </TouchableOpacity>
+          <Text style={styles.qrText} numberOfLines={1}>{qr || ''}</Text>
         </Kartu>
 
         <Kartu>
@@ -135,8 +120,8 @@ export default function AnggotaScreen({ user, onLogout }) {
               <View key={r.id} style={styles.rowItem}>
                 <Avatar nama={user.nama} size={38} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.rowTitle}>{r.tanggal}</Text>
-                  <Text style={styles.rowSub}>Pukul {r.jam}</Text>
+                  <Text style={styles.rowTitle}>{formatTanggal(r.tanggal)}</Text>
+                  <Text style={styles.rowSub}>Pukul {formatJam(r.jam)} WIB</Text>
                 </View>
                 <Chip label="Hadir" tone="success" />
               </View>
@@ -158,18 +143,12 @@ const styles = StyleSheet.create({
   qrBox: { alignItems: 'center', marginTop: 18 },
   qrFrame: {
     backgroundColor: '#fff', borderRadius: radius.md, padding: 14,
-    borderWidth: 1, borderColor: 'rgba(212,175,55,.35)',
   },
   qrText: {
     textAlign: 'center', marginTop: 14, fontFamily: 'monospace',
     fontSize: 15, letterSpacing: 1.2, color: warna.emasText, fontWeight: '700',
   },
-  btnSm: {
-    alignSelf: 'center', marginTop: 16, backgroundColor: warna.primary,
-    borderRadius: 99, paddingHorizontal: 24, paddingVertical: 11,
-  },
-  btnSmText: { color: '#0E0C0A', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
-  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 22, fontSize: 13 },
+  empty: { color: warna.empty, textAlign: 'center', marginVertical: 22, fontSize: 13 },
   sabtuOk: { backgroundColor: warna.successBg, borderRadius: radius.md, padding: 12, marginTop: 10 },
   sabtuOkText: { color: warna.successText, fontSize: 13, fontWeight: '600', lineHeight: 19 },
   sabtuBelum: { backgroundColor: warna.warnBg, borderRadius: radius.md, padding: 12, marginTop: 10 },

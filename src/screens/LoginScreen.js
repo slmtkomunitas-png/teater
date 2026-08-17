@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Image,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API_URL, setToken } from '../api';
-import { warna, radius, bayangan } from '../theme';
+import { api, setToken } from '../api';
+import { warna, radius } from '../theme';
 
 export default function LoginScreen({ onLogin }) {
   const insets = useSafeAreaInsets();
@@ -27,26 +26,17 @@ export default function LoginScreen({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      let res;
-      try {
-        res = await fetch(API_URL + '/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: form.username, password: form.password }),
-        });
-      } catch {
-        throw new Error('Tidak dapat terhubung ke server. Pastikan server dan koneksi internet aktif.');
-      }
-      const teks = await res.text();
-      let data = {};
-      try { data = JSON.parse(teks); } catch {}
-      if (!res.ok) throw new Error(data.pesan || 'Login gagal, coba lagi');
-      if (data.user.role !== role) {
+      const r = await api('/api/login', {
+        method: 'POST',
+        body: { username: form.username.trim(), password: form.password },
+      });
+      if (r.user.role !== role) {
         throw new Error(
-          `Akun ini terdaftar sebagai ${data.user.role === 'admin' ? 'Admin' : 'Anggota'}. Silakan ganti pilihan peran.`
+          `Akun ini terdaftar sebagai ${r.user.role === 'admin' ? 'Admin' : 'Anggota'}. Silakan ganti pilihan peran.`
         );
       }
-      onLogin(data.token, data.user);
+      await setToken(r.token);
+      onLogin(r.token, r.user);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -66,12 +56,7 @@ export default function LoginScreen({ onLogin }) {
   );
 
   return (
-    <LinearGradient
-      colors={[warna.gradasi1, warna.gradasi2]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.flex}
-    >
+    <View style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -81,16 +66,15 @@ export default function LoginScreen({ onLogin }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoWrap}>
-            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="cover" />
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>T</Text>
+            </View>
             <Text style={styles.brand}>Teater Sangsuropati</Text>
             <Text style={styles.subBrand}>Sistem Absensi Anggota Teater</Text>
           </View>
 
           <View style={styles.card}>
-            <View style={styles.cardHead}>
-              <View style={styles.garisEmas} />
-              <Text style={styles.cardTitle}>Masuk Akun</Text>
-            </View>
+            <Text style={styles.cardTitle}>Masuk Akun</Text>
 
             <View style={styles.roleRow}>
               <PilihanPeran value="anggota" label="Anggota" />
@@ -108,7 +92,7 @@ export default function LoginScreen({ onLogin }) {
               <TextInput
                 style={styles.input}
                 placeholder="Masukkan username"
-                placeholderTextColor="#8A7F6A"
+                placeholderTextColor={warna.placeholder}
                 autoCapitalize="none"
                 value={form.username}
                 onChangeText={v => set('username', v)}
@@ -120,7 +104,7 @@ export default function LoginScreen({ onLogin }) {
               <TextInput
                 style={styles.input}
                 placeholder="Masukkan kata sandi"
-                placeholderTextColor="#8A7F6A"
+                placeholderTextColor={warna.placeholder}
                 secureTextEntry
                 value={form.password}
                 onChangeText={v => set('password', v)}
@@ -134,7 +118,7 @@ export default function LoginScreen({ onLogin }) {
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color="#0E0C0A" />
+                <ActivityIndicator color={warna.darkOnGold} />
               ) : (
                 <Text style={styles.btnText}>Masuk</Text>
               )}
@@ -146,42 +130,38 @@ export default function LoginScreen({ onLogin }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor: warna.bg },
   wrap: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 },
   logoWrap: { alignItems: 'center', marginBottom: 28 },
-  logo: {
-    width: 96, height: 96, borderRadius: 24, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: 'rgba(212,175,55,.55)',
-    backgroundColor: '#0A0907',
+  badge: {
+    width: 68, height: 68, borderRadius: 20,
+    backgroundColor: warna.primary, alignItems: 'center', justifyContent: 'center',
   },
-  brand: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 14, letterSpacing: 0.3 },
-  subBrand: { color: 'rgba(255,255,255,.72)', fontSize: 13, marginTop: 4 },
+  badgeText: { color: warna.darkOnGold, fontSize: 30, fontWeight: '900' },
+  brand: { color: warna.teks, fontSize: 22, fontWeight: '800', marginTop: 14, letterSpacing: 0.3 },
+  subBrand: { color: warna.muted, fontSize: 13, marginTop: 4 },
   card: {
     backgroundColor: warna.card, borderRadius: radius.xl, padding: 22,
     borderWidth: 1, borderColor: warna.border,
-    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 }, elevation: 10,
   },
-  cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-  garisEmas: { width: 4, height: 22, borderRadius: 2, backgroundColor: warna.emas, marginRight: 10 },
-  cardTitle: { fontSize: 18, fontWeight: '800', color: warna.teks },
+  cardTitle: { fontSize: 18, fontWeight: '800', color: warna.teks, marginBottom: 16 },
   roleRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
   roleBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 11, borderRadius: 12, borderWidth: 1.5, borderColor: warna.border,
+    paddingVertical: 11, borderRadius: radius.md, borderWidth: 1.5, borderColor: warna.border,
     backgroundColor: warna.bg, gap: 8,
   },
   roleBtnActive: { borderColor: warna.primary, backgroundColor: warna.primaryBg },
-  roleDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#3A342C' },
-  roleDotActive: { backgroundColor: warna.gold2 },
+  roleDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: warna.border },
+  roleDotActive: { backgroundColor: warna.primary },
   roleText: { fontWeight: '700', color: warna.muted, fontSize: 14 },
   roleTextActive: { color: warna.emasText },
-  alertErr: { backgroundColor: warna.dangerBg, borderRadius: 12, padding: 12, marginBottom: 14 },
+  alertErr: { backgroundColor: warna.dangerBg, borderRadius: radius.md, padding: 12, marginBottom: 14 },
   alertErrText: { color: warna.dangerText, fontSize: 13, fontWeight: '600' },
   field: { marginBottom: 14 },
   label: { fontSize: 13, fontWeight: '700', color: warna.emasText, marginBottom: 7 },
@@ -194,7 +174,7 @@ const styles = StyleSheet.create({
     marginTop: 6, backgroundColor: warna.primary, borderRadius: radius.md,
     alignItems: 'center', paddingVertical: 15,
   },
-  btnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 16, letterSpacing: 0.4 },
+  btnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 16, letterSpacing: 0.4 },
   disabled: { opacity: 0.6 },
   note: {
     textAlign: 'center', color: warna.muted, fontSize: 12, marginTop: 16, lineHeight: 18,

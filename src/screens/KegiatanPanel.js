@@ -5,16 +5,9 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { api, API_URL, getToken } from '../api';
-import { warna, radius, bayangan } from '../theme';
+import { warna, radius } from '../theme';
 import { Chip, Kartu } from '../components';
-
-function getLastSaturday() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = (day + 6) % 7 + 1;
-  d.setDate(d.getDate() - diff);
-  return d.toISOString().slice(0, 10);
-}
+import { lastSaturday, formatJam } from '../helpers';
 
 function isSaturday(dateStr) {
   if (!dateStr) return false;
@@ -23,7 +16,7 @@ function isSaturday(dateStr) {
 }
 
 export default function KegiatanPanel({ user }) {
-  const [tanggal, setTanggal] = useState(getLastSaturday());
+  const [tanggal, setTanggal] = useState(lastSaturday());
   const [sesi, setSesi] = useState([]);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +53,7 @@ export default function KegiatanPanel({ user }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const text = await res.text();
+      if (!res.ok) throw new Error('Server menolak unduhan CSV');
       const path = `${FileSystem.cacheDirectory}absensi-${tanggal}.csv`;
       await FileSystem.writeAsStringAsync(path, text, { encoding: FileSystem.EncodingType.UTF8 });
       await Sharing.shareAsync(path, {
@@ -81,11 +75,8 @@ export default function KegiatanPanel({ user }) {
         <Text style={styles.cardTitle}>Pilih Tanggal Kegiatan</Text>
         <View style={styles.tglRow}>
           <TouchableOpacity
-            style={[styles.tglBtn, bayangan.card]}
-            onPress={() => {
-              const sab = getLastSaturday();
-              setTanggal(sab);
-            }}
+            style={[styles.tglBtn, { borderWidth: 1, borderColor: warna.border }]}
+            onPress={() => setTanggal(lastSaturday())}
             activeOpacity={0.8}
           >
             <Text style={styles.tglBtnText}>Sabtu Lalu</Text>
@@ -95,7 +86,7 @@ export default function KegiatanPanel({ user }) {
             value={tanggal}
             onChangeText={setTanggal}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#8A7F6A"
+            placeholderTextColor={warna.placeholder}
             autoCapitalize="none"
           />
         </View>
@@ -161,7 +152,7 @@ export default function KegiatanPanel({ user }) {
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.rowTitle}>{h.nama}</Text>
-                    <Text style={styles.rowSub}>@{h.username} — {h.jam}</Text>
+                    <Text style={styles.rowSub}>@{h.username} — {formatJam(h.jam)} WIB</Text>
                   </View>
                   <Chip label="Hadir" tone="success" />
                 </View>
@@ -197,7 +188,7 @@ export default function KegiatanPanel({ user }) {
             activeOpacity={0.85}
           >
             {unduh ? (
-              <ActivityIndicator color="#0E0C0A" />
+              <ActivityIndicator color={warna.darkOnGold} />
             ) : (
               <Text style={styles.unduhBtnText}>Unduh & Bagikan Laporan CSV</Text>
             )}
@@ -245,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: warna.primary, borderRadius: radius.md, paddingVertical: 15,
     marginTop: 16, marginBottom: 24, alignItems: 'center',
   },
-  unduhBtnText: { color: '#0E0C0A', fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
+  unduhBtnText: { color: warna.darkOnGold, fontWeight: '800', fontSize: 15, letterSpacing: 0.3 },
   disabled: { opacity: 0.6 },
-  empty: { color: '#7A6F5C', textAlign: 'center', marginVertical: 30, fontSize: 13 },
+  empty: { color: warna.empty, textAlign: 'center', marginVertical: 30, fontSize: 13 },
 });
